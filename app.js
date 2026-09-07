@@ -49,6 +49,28 @@ app.post('/nueva-inscripcion', async (req, res) => {
               text: curso
             }
           ]
+        },
+        {
+          type: "button",
+          sub_type: "quick_reply",
+          index: "0",
+          parameters: [
+            {
+              type: "payload",
+              payload: "respuesta_si"
+            }
+          ]
+        },
+        {
+          type: "button",
+          sub_type: "quick_reply",
+          index: "1",
+          parameters: [
+            {
+              type: "payload",
+              payload: "respuesta_no"
+            }
+          ]
         }
       ]
     }
