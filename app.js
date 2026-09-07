@@ -77,29 +77,6 @@ app.post('/nueva-inscripcion', async (req, res) => {
   }
 });
 
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${whatsappToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await response.json();
-    
-    if (response.ok) {
-      res.status(200).json({ status: "Mensaje enviado con éxito al alumno" });
-    } else {
-      res.status(response.status).json({ error: "Fallo en Meta", detalles: data });
-    }
-  } catch (error) {
-    console.error("Error en la petición:", error);
-    res.status(500).json({ error: "Error interno del servidor" });
-  }
-});
-
 app.listen(port, () => {
   console.log(`\nListening on port ${port}\n`);
 });
