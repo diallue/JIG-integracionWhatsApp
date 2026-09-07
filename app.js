@@ -39,7 +39,7 @@ app.post('/nueva-inscripcion', async (req, res) => {
     type: "template",
     template: {
       name: "plantilla_por_defecto",
-      language: { code: "es_LA" },
+      language: { code: "es" },
       components: [
         {
           type: "body",
