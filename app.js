@@ -35,11 +35,19 @@ app.post('/nueva-inscripcion', async (req, res) => {
   
   const payload = {
     messaging_product: "whatsapp",
-    to: telefono,
+    to: telefono, // El teléfono sí lo leerá del CMD
     type: "template",
     template: {
       name: "plantilla_por_defecto",
-      language: { code: "es_ES" }
+      language: { code: "es" },
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: "Bodypump 2026-2027" }
+          ]
+        }
+      ]
     }
   };
 
