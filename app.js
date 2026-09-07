@@ -35,22 +35,11 @@ app.post('/nueva-inscripcion', async (req, res) => {
   
   const payload = {
     messaging_product: "whatsapp",
+    recipient_type: "individual",
     to: telefono,
-    type: "template",
-    template: {
-      name: "plantilla_por_defecto",
-      language: { code: "es" },
-      components: [
-        {
-          type: "body",
-          parameters: [
-            {
-              type: "text",
-              text: curso
-            }
-          ]
-        }
-      ]
+    type: "text",
+    text: {
+      body: `Hola, bienvenido/a al curso ${curso}. ¿Deseas recibir información?`
     }
   };
 
