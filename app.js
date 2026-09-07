@@ -34,47 +34,25 @@ app.post('/nueva-inscripcion', async (req, res) => {
   const url = `https://graph.facebook.com/v17.0/${phoneNumberId}/messages`;
   
   const payload = {
-    messaging_product: "whatsapp",
-    to: telefono,
-    type: "template",
-    template: {
-      name: "plantilla_por_defecto",
-      language: { code: "es" },
-      components: [
-        {
-          type: "body",
-          parameters: [
-            {
-              type: "text",
-              text: curso
-            }
-          ]
-        },
-        {
-          type: "button",
-          sub_type: "quick_reply",
-          index: "0",
-          parameters: [
-            {
-              type: "payload",
-              payload: "respuesta_si"
-            }
-          ]
-        },
-        {
-          type: "button",
-          sub_type: "quick_reply",
-          index: "1",
-          parameters: [
-            {
-              type: "payload",
-              payload: "respuesta_no"
-            }
-          ]
-        }
-      ]
-    }
-  };
+  messaging_product: "whatsapp",
+  to: telefono,
+  type: "template",
+  template: {
+    name: "plantilla_por_defecto",
+    language: { code: "es" },
+    components: [
+      {
+        type: "body",
+        parameters: [
+          {
+            type: "text",
+            text: curso
+          }
+        ]
+      }
+    ]
+  }
+};
 
   try {
     const response = await fetch(url, {
