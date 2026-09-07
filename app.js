@@ -69,6 +69,7 @@ app.post('/nueva-inscripcion', async (req, res) => {
     if (response.ok) {
       res.status(200).json({ status: "Mensaje enviado con éxito al alumno" });
     } else {
+      console.error("DETALLE COMPLETO DE META:", JSON.stringify(data, null, 2));
       res.status(response.status).json({ error: "Fallo en Meta", detalles: data });
     }
   } catch (error) {
