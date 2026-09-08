@@ -30,27 +30,43 @@ app.post('/', (req, res) => {
       const entry = body.entry?.[0];
       const change = entry?.changes?.[0];
       const value = change?.value;
-      const message = value?.messages?.[0];
+      const field = change?.field;
 
-      if (message && message.type === 'text') {
-        const textoRecibido = message.text.body
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "");
+      if (field === 'messages') {
+        const message = value?.messages?.[0];
+        
+        if (message && message.type === 'text') {
+          const textoRecibido = message.text.body
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+            
+          const telefonoUsuario = message.from;
+          console.log(`[MENSAJE ENTRANTE] De: ${telefonoUsuario} | Texto limpio: ${textoRecibido}`);
           
-        const telefonoUsuario = message.from;
-      
-        console.log(`[MENSAJE ENTRANTE] De: ${telefonoUsuario} | Texto limpio: ${textoRecibido}`);
-      
-        const intencionHorario = /\b(horario|horarios|hora|horas|clase|clases|calendario|turno|turnos|agenda)\b/;
-      
-        if (intencionHorario.test(textoRecibido)) {
-          //const respuestaHorarios = "🗓️ Puedes consultar todos tus horarios del Grado en Ingeniería Informática en el siguiente enlace:\n\nhttps://www.unirioja.es/estudiantes/horarios";
-          enviarPlantillaHorarios(telefonoUsuario);
+          const intencionHorario = /\b(horario|horarios|hora|horas|clase|clases|calendario|turno|turnos|agenda)\b/;
           
-          enviarMensajeTexto(telefonoUsuario, respuestaHorarios);
+          if (intencionHorario.test(textoRecibido)) {
+            enviarPlantillaHorarios(telefonoUsuario);
+          } else {
+            console.log("Mensaje genérico recibido, no requiere respuesta automatizada.");
+          }
+        }
+      }
+
+      else if (field === 'group_lifecycle_update') {
+        const action = value?.action;
+        const inviteLink = value?.invite_link;
+        const groupSubject = value?.subject;
+        const groupId = value?.group_id;
+
+        if (action === 'created' || inviteLink) {
+          console.log(`\n[NUEVO GRUPO CREADO EN META]`);
+          console.log(`- Asunto: ${groupSubject}`);
+          console.log(`- ID: ${groupId}`);
+          console.log(`- Enlace de invitación: ${inviteLink}\n`);
         } else {
-          console.log("Mensaje genérico recibido, no requiere respuesta automatizada.");
+          console.log(`[ACTUALIZACIÓN DE GRUPO] Acción: ${action}`);
         }
       }
     }
@@ -175,5 +191,32 @@ async function enviarPlantillaHorarios(destinatario) {
     console.log("[PLANTILLA DE HORARIOS ENVIADA]:", result);
   } catch (error) {
     console.error("[ERROR HTTP]:", error);
+  }
+}
+
+async function crearGrupoCurso(nombreCurso) {
+  const url = `https://graph.facebook.com/v25.0/${process.env.PHONE_NUMBER_ID}/groups`;
+  
+  const payload = {
+    messaging_product: "whatsapp",
+    subject: `Logroño Deporte - ${nombreCurso}`,
+    description: `Grupo oficial de coordinación para el curso de ${nombreCurso}.`
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.WHATSAPP_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    const result = await response.json();
+    console.log("[PETICIÓN DE GRUPO ENVIADA]:", result);
+    return result; 
+  } catch (error) {
+    console.error("[ERROR HTTP CREANDO GRUPO]:", error);
   }
 }
