@@ -20,8 +20,38 @@ app.get('/', (req, res) => {
 app.post('/', (req, res) => {
   const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
   console.log(`\n\nWebhook received ${timestamp}\n`);
-  console.log(JSON.stringify(req.body, null, 2));
+  
+  // 1. Responder siempre con 200 OK inmediatamente a Meta
   res.status(200).end();
+
+  // 2. Extraer los datos de forma segura
+  try {
+    const body = req.body;
+    
+    if (body.object === 'whatsapp_business_account') {
+      const entry = body.entry?.[0];
+      const change = entry?.changes?.[0];
+      const value = change?.value;
+      const message = value?.messages?.[0]; // ¡Aquí definimos el mensaje!
+
+      if (message && message.type === 'text') {
+        const textoRecibido = message.text.body.toLowerCase();
+        const telefonoUsuario = message.from;
+
+        console.log(`[MENSAJE ENTRANTE] De: ${telefonoUsuario} | Texto: ${textoRecibido}`);
+
+        if (textoRecibido.includes('horario') || textoRecibido.includes('clase')) {
+          const respuestaHorarios = "🗓️ Puedes consultar todos tus horarios del Grado en Ingeniería Informática en el siguiente enlace:\n\nhttps://www.unirioja.es/estudiantes/horarios";
+          
+          enviarMensajeTexto(telefonoUsuario, respuestaHorarios);
+        } else {
+          console.log("Mensaje genérico recibido, no requiere respuesta automatizada.");
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error procesando el payload del webhook:", error);
+  }
 });
 
 app.post('/nueva-inscripcion', async (req, res) => {
@@ -81,3 +111,34 @@ app.post('/nueva-inscripcion', async (req, res) => {
 app.listen(port, () => {
   console.log(`\nListening on port ${port}\n`);
 });
+
+async function enviarMensajeTexto(destinatario, texto) {
+  const url = `https://graph.facebook.com/v25.0/${process.env.PHONE_NUMBER_ID}/messages`;
+  
+  const payload = {
+    messaging_product: "whatsapp",
+    recipient_type: "individual",
+    to: destinatario,
+    type: "text",
+    text: { 
+      preview_url: true, // Activa la miniatura visual si envías un enlace
+      body: texto 
+    }
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.WHATSAPP_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    const result = await response.json();
+    console.log("[AUTOMATIZACIÓN ENVIADA]:", result);
+  } catch (error) {
+    console.error("[ERROR HTTP]:", error);
+  }
+}
