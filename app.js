@@ -142,6 +142,24 @@ app.get('/test-grupo', async (req, res) => {
   });
 });
 
+// Ruta temporal para probar el envío de correos
+app.get('/test-email', async (req, res) => {
+  // 1. Sustituye esto por tu correo electrónico personal real
+  const miCorreoPersonal = "dallue@jig.es"; 
+  
+  const enlaceSimulado = "https://chat.whatsapp.com/ENLACE_DE_PRUEBA";
+  
+  console.log(`Enviando email de prueba a: ${miCorreoPersonal}`);
+  
+  await enviarEmailInvitacion(miCorreoPersonal, enlaceSimulado, "Pádel L-X (Prueba)");
+  
+  res.json({ 
+    status: "Orden de email ejecutada", 
+    destino: miCorreoPersonal,
+    aviso: "Revisa tu bandeja de entrada o la carpeta de Spam."
+  });
+});
+
 app.listen(port, () => {
   console.log(`\nListening on port ${port}\n`);
 });
@@ -231,5 +249,36 @@ async function crearGrupoCurso(nombreCurso) {
     return result; 
   } catch (error) {
     console.error("[ERROR HTTP CREANDO GRUPO]:", error);
+  }
+}
+
+const nodemailer = require('nodemailer');
+
+async function enviarEmailInvitacion(emailAlumno, enlaceGrupo, nombreCurso) {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USUARIO,
+      pass: process.env.EMAIL_PASSWORD
+    }
+  });
+
+  const mensaje = {
+    from: '"Logroño Deporte" <tu-email@gmail.com>',
+    to: emailAlumno,
+    subject: `🔗 Enlace de WhatsApp - Curso: ${nombreCurso}`,
+    html: `
+      <h2>¡Hola! Tu inscripción está confirmada.</h2>
+      <p>Para estar al tanto de los avisos del curso de <b>${nombreCurso}</b>, únete al grupo oficial de WhatsApp haciendo clic en el siguiente enlace:</p>
+      <a href="${enlaceGrupo}" style="background-color:#25D366;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;display:inline-block;">Unirme al Grupo</a>
+      <p>Un saludo,<br>El equipo de Logroño Deporte</p>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mensaje);
+    console.log(`[EMAIL ENVIADO] Invitación enviada a ${emailAlumno}`);
+  } catch (error) {
+    console.error("[ERROR ENVIANDO EMAIL]:", error);
   }
 }
