@@ -45,7 +45,8 @@ app.post('/', (req, res) => {
         const intencionHorario = /\b(horario|horarios|hora|horas|clase|clases|calendario|turno|turnos|agenda)\b/;
       
         if (intencionHorario.test(textoRecibido)) {
-          const respuestaHorarios = "🗓️ Puedes consultar todos tus horarios del Grado en Ingeniería Informática en el siguiente enlace:\n\nhttps://www.unirioja.es/estudiantes/horarios";
+          //const respuestaHorarios = "🗓️ Puedes consultar todos tus horarios del Grado en Ingeniería Informática en el siguiente enlace:\n\nhttps://www.unirioja.es/estudiantes/horarios";
+          enviarPlantillaHorarios(telefonoUsuario);
           
           enviarMensajeTexto(telefonoUsuario, respuestaHorarios);
         } else {
@@ -125,7 +126,7 @@ async function enviarMensajeTexto(destinatario, texto) {
     to: destinatario,
     type: "text",
     text: { 
-      preview_url: true, // Activa la miniatura visual si envías un enlace
+      preview_url: true,
       body: texto 
     }
   };
@@ -142,6 +143,36 @@ async function enviarMensajeTexto(destinatario, texto) {
     
     const result = await response.json();
     console.log("[AUTOMATIZACIÓN ENVIADA]:", result);
+  } catch (error) {
+    console.error("[ERROR HTTP]:", error);
+  }
+}
+
+async function enviarPlantillaHorarios(destinatario) {
+  const url = `https://graph.facebook.com/v25.0/${process.env.PHONE_NUMBER_ID}/messages`;
+  
+  const payload = {
+    messaging_product: "whatsapp",
+    to: destinatario,
+    type: "template",
+    template: { 
+      name: "respuesta_horarios",
+      language: { code: "es" } 
+    }
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.WHATSAPP_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    const result = await response.json();
+    console.log("[PLANTILLA DE HORARIOS ENVIADA]:", result);
   } catch (error) {
     console.error("[ERROR HTTP]:", error);
   }
