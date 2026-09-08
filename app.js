@@ -21,10 +21,8 @@ app.post('/', (req, res) => {
   const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
   console.log(`\n\nWebhook received ${timestamp}\n`);
   
-  // 1. Responder siempre con 200 OK inmediatamente a Meta
   res.status(200).end();
 
-  // 2. Extraer los datos de forma segura
   try {
     const body = req.body;
     
@@ -32,15 +30,21 @@ app.post('/', (req, res) => {
       const entry = body.entry?.[0];
       const change = entry?.changes?.[0];
       const value = change?.value;
-      const message = value?.messages?.[0]; // ¡Aquí definimos el mensaje!
+      const message = value?.messages?.[0];
 
       if (message && message.type === 'text') {
-        const textoRecibido = message.text.body.toLowerCase();
+        const textoRecibido = message.text.body
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+          
         const telefonoUsuario = message.from;
-
-        console.log(`[MENSAJE ENTRANTE] De: ${telefonoUsuario} | Texto: ${textoRecibido}`);
-
-        if (textoRecibido.includes('horario') || textoRecibido.includes('clase')) {
+      
+        console.log(`[MENSAJE ENTRANTE] De: ${telefonoUsuario} | Texto limpio: ${textoRecibido}`);
+      
+        const intencionHorario = /\b(horario|horarios|hora|horas|clase|clases|calendario|turno|turnos|agenda)\b/;
+      
+        if (intencionHorario.test(textoRecibido)) {
           const respuestaHorarios = "🗓️ Puedes consultar todos tus horarios del Grado en Ingeniería Informática en el siguiente enlace:\n\nhttps://www.unirioja.es/estudiantes/horarios";
           
           enviarMensajeTexto(telefonoUsuario, respuestaHorarios);
