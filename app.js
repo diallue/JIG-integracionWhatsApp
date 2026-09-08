@@ -129,6 +129,19 @@ app.post('/nueva-inscripcion', async (req, res) => {
   }
 });
 
+// Ruta temporal para probar la creación de grupos de Logroño Deporte
+app.get('/test-grupo', async (req, res) => {
+  console.log("Enviando petición a Meta para crear el grupo...");
+  
+  const resultado = await crearGrupoCurso("Pádel L-X 19:00");
+  
+  res.json({ 
+    status: "Petición enviada a Meta", 
+    aviso: "Revisa la pestaña Logs en Render. El enlace de invitación debería llegar por webhook en unos segundos.",
+    respuesta_meta: resultado 
+  });
+});
+
 app.listen(port, () => {
   console.log(`\nListening on port ${port}\n`);
 });
