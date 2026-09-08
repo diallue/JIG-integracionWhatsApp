@@ -144,8 +144,7 @@ app.get('/test-grupo', async (req, res) => {
 
 // Ruta temporal para probar el envío de correos
 app.get('/test-email', async (req, res) => {
-  // 1. Sustituye esto por tu correo electrónico personal real
-  const miCorreoPersonal = "dallue@jig.es"; 
+  const miCorreoPersonal = "diallue@unirioja.es";
   
   const enlaceSimulado = "https://chat.whatsapp.com/ENLACE_DE_PRUEBA";
   
