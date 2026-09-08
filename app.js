@@ -252,33 +252,21 @@ async function crearGrupoCurso(nombreCurso) {
   }
 }
 
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function enviarEmailInvitacion(emailAlumno, enlaceGrupo, nombreCurso) {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USUARIO,
-      pass: process.env.EMAIL_PASSWORD
-    }
-  });
-
-  const mensaje = {
-    from: '"Logroño Deporte" <tu-email@gmail.com>',
-    to: emailAlumno,
-    subject: `🔗 Enlace de WhatsApp - Curso: ${nombreCurso}`,
-    html: `
-      <h2>¡Hola! Tu inscripción está confirmada.</h2>
-      <p>Para estar al tanto de los avisos del curso de <b>${nombreCurso}</b>, únete al grupo oficial de WhatsApp haciendo clic en el siguiente enlace:</p>
-      <a href="${enlaceGrupo}" style="background-color:#25D366;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;display:inline-block;">Unirme al Grupo</a>
-      <p>Un saludo,<br>El equipo de Logroño Deporte</p>
-    `
-  };
-
   try {
-    await transporter.sendMail(mensaje);
-    console.log(`[EMAIL ENVIADO] Invitación enviada a ${emailAlumno}`);
-  } catch (error) {
-    console.error("[ERROR ENVIANDO EMAIL]:", error);
+    const { data, error } = await resend.emails.send({
+      from: 'Logroño Deporte <onboarding@resend.dev>', // Usas su dominio de pruebas
+      to: emailAlumno, // ej: dallue@jig.es
+      subject: `🔗 Enlace de WhatsApp - Curso: ${nombreCurso}`,
+      html: `<p>Únete al grupo oficial aquí: <a href="${enlaceGrupo}">Unirme</a></p>`
+    });
+
+    if (error) console.error("Error de la API:", error);
+    else console.log("[EMAIL ENVIADO A TRAVÉS DE HTTP/API]");
+  } catch (err) {
+    console.error("Error en la petición:", err);
   }
 }
