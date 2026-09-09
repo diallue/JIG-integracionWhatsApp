@@ -7,6 +7,18 @@ const verifyToken = process.env.VERIFY_TOKEN;
 const whatsappToken = process.env.WHATSAPP_TOKEN;
 const phoneNumberId = process.env.PHONE_NUMBER_ID;
 
+const colaInscripciones = new Map(); 
+
+app.post('/inscribir-alumno', async (req, res) => {
+  const { email, nombreCurso } = req.body;
+  
+  colaInscripciones.set(nombreCurso, { emailAlumno: email });
+
+  await crearGrupoCurso(nombreCurso);
+  
+  res.json({ status: "Procesando inscripción, esperando a Meta..." });
+});
+
 app.get('/', (req, res) => {
   const { 'hub.mode': mode, 'hub.challenge': challenge, 'hub.verify_token': token } = req.query;
   if (mode === 'subscribe' && token === verifyToken) {
@@ -57,16 +69,22 @@ app.post('/', (req, res) => {
       else if (field === 'group_lifecycle_update') {
         const action = value?.action;
         const inviteLink = value?.invite_link;
-        const groupSubject = value?.subject;
-        const groupId = value?.group_id;
+        const groupSubject = value?.subject; 
 
-        if (action === 'created' || inviteLink) {
-          console.log(`\n[NUEVO GRUPO CREADO EN META]`);
-          console.log(`- Asunto: ${groupSubject}`);
-          console.log(`- ID: ${groupId}`);
-          console.log(`- Enlace de invitación: ${inviteLink}\n`);
-        } else {
-          console.log(`[ACTUALIZACIÓN DE GRUPO] Acción: ${action}`);
+        if ((action === 'created' || inviteLink) && groupSubject) {
+          console.log(`[WEBHOOK] Enlace recibido para: ${groupSubject}`);
+          
+          const nombreCurso = groupSubject.replace("Logroño Deporte - ", "");
+          
+          const datosPendientes = colaInscripciones.get(nombreCurso);
+          
+          if (datosPendientes) {
+             console.log(`Enviando enlace automáticamente a ${datosPendientes.emailAlumno}`);
+             
+             enviarEmailInvitacion(datosPendientes.emailAlumno, inviteLink, nombreCurso);
+             
+             colaInscripciones.delete(nombreCurso);
+          }
         }
       }
     }
