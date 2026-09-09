@@ -23,4 +23,17 @@ router.get('/mock-webhook', async (req, res) => {
   res.json({ status: "Simulación ejecutada" });
 });
 
+// Ruta temporal para probar la creación de grupos reales en Meta
+router.get('/test-grupo', async (req, res) => {
+  console.log("Enviando petición a Meta para crear el grupo real...");
+  
+  const resultado = await crearGrupoCurso("Pádel L-X Test API");
+  
+  res.json({ 
+    status: "Petición enviada a la API de Meta", 
+    aviso: "Revisa la pestaña Logs en Render.",
+    respuesta_meta: resultado 
+  });
+});
+
 module.exports = router;
