@@ -1,5 +1,7 @@
 const express = require('express');
 const app = express();
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 app.use(express.json());
 
 const port = process.env.PORT || 3000;
@@ -177,6 +179,45 @@ app.get('/test-email', async (req, res) => {
   });
 });
 
+app.get('/mock-webhook', async (req, res) => {
+  const correoPrueba = "diallue@unirioja.es";
+  const nombreCurso = "Pádel L-X";
+  
+  colaInscripciones.set(nombreCurso, { emailAlumno: correoPrueba });
+  console.log(`\n[SIMULADOR] Alumno añadido a la cola para el curso: ${nombreCurso}`);
+
+  const mockPayload = {
+    object: 'whatsapp_business_account',
+    entry: [{
+      changes: [{
+        field: 'group_lifecycle_update',
+        value: {
+          action: 'created',
+          subject: `Logroño Deporte - ${nombreCurso}`,
+          group_id: '123456789_SIMULADO',
+          invite_link: 'https://chat.whatsapp.com/ENLACE_FALSO_123'
+        }
+      }]
+    }]
+  };
+
+  try {
+    await fetch(`http://127.0.0.1:${port}/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mockPayload)
+    });
+
+    res.json({
+      status: "Simulación inyectada con éxito",
+      aviso: "Revisa los logs de Render. Tu webhook debería haber detectado el grupo simulado y disparado el email."
+    });
+  } catch (error) {
+    console.error("Error inyectando simulación:", error);
+    res.status(500).json({ error: "Fallo en la simulación" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`\nListening on port ${port}\n`);
 });
@@ -268,9 +309,6 @@ async function crearGrupoCurso(nombreCurso) {
     console.error("[ERROR HTTP CREANDO GRUPO]:", error);
   }
 }
-
-const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function enviarEmailInvitacion(emailAlumno, enlaceGrupo, nombreCurso) {
   try {
