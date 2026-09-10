@@ -15,6 +15,7 @@ router.get('/', (req, res) => {
 router.post('/', (req, res) => {
   res.status(200).end();
   try {
+    console.log("¡Evento recibido de Meta!:", JSON.stringify(req.body, null, 2));
     const body = req.body;
     if (body.object === 'whatsapp_business_account') {
       const field = body.entry?.[0]?.changes?.[0]?.field;
