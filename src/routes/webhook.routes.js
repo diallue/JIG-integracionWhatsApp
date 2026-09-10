@@ -45,7 +45,7 @@ router.post('/', async (req, res) => {
             .catch(error => console.error("-> ERROR HTTP:", error.response?.data || error.message));
         }
 
-        if (texto.includes("grupo")) {¡
+        if (texto.includes("grupo")) {
           console.log("-> Creando grupo de curso...");
           const resultadoGrupo = await crearGrupoCurso("Pilates Avanzado");
           console.log("[GRUPO CREADO]:", resultadoGrupo);
