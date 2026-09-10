@@ -37,22 +37,12 @@ async function enviarPlantillaHorarios(destinatario) {
   
   const payload = {
     messaging_product: "whatsapp",
+    recipient_type: "individual",
     to: destinatario,
-    type: "template",
-    template: { 
-      name: "respuesta_horarios", 
-      language: { code: "es" },
-      components: [
-        {
-          type: "body",
-          parameters: [
-            {
-              type: "text",
-              text: "Bodypump 2026-2027"
-            }
-          ]
-        }
-      ]
+    type: "text",
+    text: { 
+      preview_url: true, 
+      body: "Puedes consultar todos tus horarios del curso Bodypump 2026-2027 en el siguiente enlace:\nhttps://www.logronodeporte.es/horarios" 
     }
   };
   
