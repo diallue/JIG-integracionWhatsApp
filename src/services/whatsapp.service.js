@@ -66,12 +66,31 @@ async function enviarPlantillaHorarios(destinatario) {
 
 async function crearGrupoCurso(nombreCurso) {
   const url = `https://graph.facebook.com/v25.0/${phoneNumberId}/groups`;
+  
   const payload = {
     messaging_product: "whatsapp",
     subject: `Logroño Deporte - ${nombreCurso}`,
     description: `Grupo oficial de coordinación para el curso de ${nombreCurso}.`
   };
-  const response = await fetch(url, { method: 'POST', headers: { 'Authorization': `Bearer ${whatsappToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-  return await response.json();
+  
+  const response = await fetch(url, { 
+    method: 'POST', 
+    headers: { 
+      'Authorization': `Bearer ${whatsappToken}`, 
+      'Content-Type': 'application/json' 
+    }, 
+    body: JSON.stringify(payload) 
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(JSON.stringify(data.error, null, 2));
+  }
+
+  return data;
 }
+
+module.exports = { enviarPlantillaHorarios, crearGrupoCurso };
+
 module.exports = { enviarPlantillaHorarios, crearGrupoCurso };
