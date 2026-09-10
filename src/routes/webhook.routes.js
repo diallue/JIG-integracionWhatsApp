@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { colaInscripciones } = require('../utils/queue');
-const { enviarPlantillaHorarios } = require('../services/whatsapp.service');
+const { enviarPlantillaHorarios, crearGrupoCurso } = require('../services/whatsapp.service');
 const { enviarEmailInvitacion } = require('../services/email.service');
 
 router.get('/', (req, res) => {
@@ -12,7 +12,7 @@ router.get('/', (req, res) => {
   }
 });
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   res.status(200).end();
   
   try {
@@ -45,7 +45,7 @@ router.post('/', (req, res) => {
             .catch(error => console.error("-> ERROR HTTP:", error.response?.data || error.message));
         }
 
-        if (textoMensaje.toLowerCase().includes("grupo")) {
+        if (texto.includes("grupo")) {¡
           console.log("-> Creando grupo de curso...");
           const resultadoGrupo = await crearGrupoCurso("Pilates Avanzado");
           console.log("[GRUPO CREADO]:", resultadoGrupo);
