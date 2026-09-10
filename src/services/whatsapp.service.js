@@ -40,7 +40,23 @@ async function enviarPlantillaHorarios(destinatario) {
     type: "template",
     template: { name: "respuesta_horarios", language: { code: "es" } }
   };
-  await fetch(url, { method: 'POST', headers: { 'Authorization': `Bearer ${whatsappToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+  
+  const response = await fetch(url, { 
+    method: 'POST', 
+    headers: { 
+      'Authorization': `Bearer ${whatsappToken}`, 
+      'Content-Type': 'application/json' 
+    }, 
+    body: JSON.stringify(payload) 
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(JSON.stringify(data.error, null, 2));
+  }
+
+  return data;
 }
 
 async function crearGrupoCurso(nombreCurso) {
