@@ -37,3 +37,32 @@ router.get('/test-grupo', async (req, res) => {
 });
 
 module.exports = router;
+
+// Ruta temporal para forzar el PIN de 2FA mediante la API de Meta
+router.get('/forzar-pin', async (req, res) => {
+  try {
+    const phoneNumberId = '1366063996580453';
+    const accessToken = process.env.WHATSAPP_TOKEN;
+    const pin = '751309';
+
+    const response = await fetch(`https://graph.facebook.com/v19.0/${phoneNumberId}/register`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        pin: pin
+      })
+    });
+
+    const data = await response.json();
+    res.json({
+      status: response.ok ? "¡PIN registrado con éxito por API!" : "Error al registrar el PIN en Meta",
+      respuesta_meta: data
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
