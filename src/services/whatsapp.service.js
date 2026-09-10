@@ -34,11 +34,26 @@ async function enviarMensajeTexto(destinatario, texto) {
 
 async function enviarPlantillaHorarios(destinatario) {
   const url = `https://graph.facebook.com/v25.0/${phoneNumberId}/messages`;
+  
   const payload = {
     messaging_product: "whatsapp",
     to: destinatario,
     type: "template",
-    template: { name: "respuesta_horarios", language: { code: "es" } }
+    template: { 
+      name: "respuesta_horarios", 
+      language: { code: "es" },
+      components: [
+        {
+          type: "body",
+          parameters: [
+            {
+              type: "text",
+              text: "Bodypump 2026-2027"
+            }
+          ]
+        }
+      ]
+    }
   };
   
   const response = await fetch(url, { 
