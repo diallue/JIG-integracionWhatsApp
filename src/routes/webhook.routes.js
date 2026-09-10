@@ -44,6 +44,12 @@ router.post('/', (req, res) => {
             .then(() => console.log("-> Petición de plantilla aceptada por Meta (esperando estado de entrega...)."))
             .catch(error => console.error("-> ERROR HTTP:", error.response?.data || error.message));
         }
+
+        if (textoMensaje.toLowerCase().includes("grupo")) {
+          console.log("-> Creando grupo de curso...");
+          const resultadoGrupo = await crearGrupoCurso("Pilates Avanzado");
+          console.log("[GRUPO CREADO]:", resultadoGrupo);
+        }
       } 
       
       else if (field === 'group_lifecycle_update' && value?.invite_link) {
