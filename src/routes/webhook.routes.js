@@ -14,16 +14,29 @@ router.get('/', (req, res) => {
 
 router.post('/', (req, res) => {
   res.status(200).end();
+  
   try {
-    console.log("¡Evento recibido de Meta!:", JSON.stringify(req.body, null, 2));
     const body = req.body;
+    
     if (body.object === 'whatsapp_business_account') {
       const field = body.entry?.[0]?.changes?.[0]?.field;
       const value = body.entry?.[0]?.changes?.[0]?.value;
 
       if (field === 'messages' && value?.messages?.[0]?.type === 'text') {
+        const remitente = value.messages[0].from;
         const texto = value.messages[0].text.body.toLowerCase();
-        if (/\b(horario|clase|turno)\b/.test(texto)) enviarPlantillaHorarios(value.messages[0].from);
+        
+        console.log(`Mensaje recibido de ${remitente}: "${texto}"`);
+        
+        if (/\b(horario|horarios|clases|hora|horas|clase|turno)\b/.test(texto)) {
+          console.log("-> Palabra clave detectada. Enviando plantilla a Meta...");
+          
+          enviarPlantillaHorarios(remitente)
+            .then(() => console.log("-> ¡Plantilla enviada con éxito!"))
+            .catch(error => {
+              console.error("-> ERROR AL ENVIAR LA PLANTILLA:", error.response?.data || error.message);
+            });
+        }
       } 
       else if (field === 'group_lifecycle_update' && value?.invite_link) {
         const nombreCurso = value.subject.replace("Logroño Deporte - ", "");
@@ -34,6 +47,8 @@ router.post('/', (req, res) => {
         }
       }
     }
-  } catch (error) { console.error("Error webhook:", error); }
+  } catch (error) { 
+    console.error("Error general en el webhook:", error); 
+  }
 });
 module.exports = router;
