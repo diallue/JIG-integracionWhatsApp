@@ -45,6 +45,17 @@ router.post('/', async (req, res) => {
             .catch(error => console.error("-> ERROR HTTP:", error.response?.data || error.message));
         }
 
+        if (texto.includes("unirme a pilates")) {
+          console.log("-> Solicitud de grupo detectada. Enviando enlace...");
+          
+          const nombreCurso = "Pilates Avanzado";
+          const enlaceReal = "https://chat.whatsapp.com/Hzvdx52ssP86VQUJcPIIT7?s=cl&p=a&mlu=4&ilr=4";
+          
+          enviarEnlaceGrupo(remitente, nombreCurso, enlaceReal)
+            .then(() => console.log("[ENLACE ENVIADO CON ÉXITO]"))
+            .catch(error => console.error("-> ERROR AL ENVIAR ENLACE:", error.message));
+        }
+
         if (texto.includes("grupo")) {
           console.log("-> Creando grupo de curso...");
           const resultadoGrupo = await crearGrupoCurso("Pilates Avanzado");
