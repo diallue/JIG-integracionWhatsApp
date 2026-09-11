@@ -25,7 +25,7 @@ async function enviarEmailInvitacion(emailAlumno, enlaceGrupo, nombreCurso) {
     from: 'Logroño Deporte <onboarding@resend.dev>',
     to: emailAlumno,
     subject: asunto,
-    html: cuerpo
+    text: cuerpo
   });
 }
 
