@@ -123,8 +123,9 @@ async function enviarEnlaceGrupo(destinatario, nombreCurso, enlaceGrupo) {
   return data;
 }
 
-module.exports = { enviarPlantillaHorarios, enviarEnlaceGrupo };
-
-module.exports = { enviarPlantillaHorarios, crearGrupoCurso };
-
-module.exports = { enviarPlantillaHorarios, crearGrupoCurso };
+module.exports = { 
+  enviarMensajeTexto, 
+  enviarPlantillaHorarios, 
+  crearGrupoCurso, 
+  enviarEnlaceGrupo 
+};
