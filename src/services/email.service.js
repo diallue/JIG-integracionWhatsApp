@@ -20,8 +20,13 @@ async function enviarEmailInvitacion(emailAlumno, enlaceGrupo, nombreCurso) {
   console.log(`[EMAIL ENVIADO a ${emailAlumno}]:`);
   console.log(`Asunto: ${asunto}`);
   console.log(`Cuerpo: ${cuerpo}`);
-  
-  return true;
+
+  const { data, error } = await resend.emails.send({
+    from: 'Logroño Deporte <onboarding@resend.dev>',
+    to: emailAlumno,
+    subject: asunto,
+    html: cuerpo
+  });
 }
 
 module.exports = { enviarEmailInvitacion };
