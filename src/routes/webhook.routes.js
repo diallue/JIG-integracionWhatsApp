@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { colaInscripciones } = require('../utils/queue');
-const { enviarPlantillaHorarios, enviarEnlaceGrupo } = require('../services/whatsapp.service');
-const { enviarEmailInvitacion } = require('../services/email.service');
+const { guardarEnlaceCurso, obtenerEnlaceCurso } = require('../services/db.service');
+const { enviarMensajeTexto, enviarPlantillaHorarios, enviarEnlaceGrupo } = require('../services/whatsapp.service');
+
+const PIN_ADMIN = process.env.PIN_ADMIN || "LD2026"; 
 
 router.get('/', (req, res) => {
   if (req.query['hub.mode'] === 'subscribe' && req.query['hub.verify_token'] === process.env.VERIFY_TOKEN) {
@@ -19,58 +20,64 @@ router.post('/', async (req, res) => {
     const body = req.body;
     
     if (body.object === 'whatsapp_business_account') {
-      const field = body.entry?.[0]?.changes?.[0]?.field;
-      const value = body.entry?.[0]?.changes?.[0]?.value;
+      const entry = body.entry?.[0];
+      const changes = entry?.changes?.[0];
+      const value = changes?.value;
+      const field = changes?.field;
 
       if (value?.statuses) {
         const estado = value.statuses[0];
-        console.log(`[ESTADO] Mensaje: ${estado.status} (Teléfono: ${estado.recipient_id})`);
-        
-        if (estado.errors) {
-          console.error("-> MOTIVO DEL FALLO DE ENTREGA:", JSON.stringify(estado.errors, null, 2));
-        }
+        if (estado.errors) console.error("-> FALLO ENTREGA:", JSON.stringify(estado.errors));
+        return;
       }
       
-      else if (field === 'messages' && value?.messages?.[0]?.type === 'text') {
+      if (field === 'messages' && value?.messages?.[0]?.type === 'text') {
         const remitente = value.messages[0].from;
-        const texto = value.messages[0].text.body.toLowerCase();
+        const textoOriginal = value.messages[0].text.body; 
+        const textoMinusculas = textoOriginal.toLowerCase();
         
-        console.log(`Mensaje recibido de ${remitente}: "${texto}"`);
-        
-        if (/\b(horario|clase|turno)\b/.test(texto)) {
-          console.log("-> Palabra clave detectada. Enviando plantilla a Meta...");
-          
-          enviarPlantillaHorarios(remitente)
-            .then(() => console.log("-> Petición de plantilla aceptada por Meta (esperando estado de entrega...)."))
-            .catch(error => console.error("-> ERROR HTTP:", error.response?.data || error.message));
+        console.log(`[MENSAJE RECIBIDO] De ${remitente}: "${textoOriginal}"`);
+
+        const regexAdmin = /^!nuevo\s+(\S+)\s+(.+?)\s+(https:\/\/chat\.whatsapp\.com\/\S+)$/i;
+        const matchAdmin = textoOriginal.match(regexAdmin);
+
+        if (matchAdmin) {
+          const pinRecibido = matchAdmin[1];
+          const nombreCurso = matchAdmin[2];
+          const enlace = matchAdmin[3];
+
+          if (pinRecibido === PIN_ADMIN) {
+            await guardarEnlaceCurso(nombreCurso, enlace);
+            await enviarMensajeTexto(remitente, `¡Éxito! Enlace guardado correctamente en la base de datos para el curso: *${nombreCurso}*`);
+          } else {
+            await enviarMensajeTexto(remitente, `Acceso denegado: PIN de seguridad incorrecto.`);
+          }
+          return; 
         }
 
-        if (texto.includes("unirme a pilates")) {
-          console.log("-> Solicitud de grupo detectada. Enviando enlace...");
+        const regexUsuario = /^quiero unirme al grupo de (.+)$/i;
+        const matchUsuario = textoMinusculas.match(regexUsuario);
+
+        if (matchUsuario) {
+          const nombreCursoSolicitado = matchUsuario[1];
+          console.log(`-> Buscando enlace para: ${nombreCursoSolicitado}`);
           
-          const nombreCurso = "Pilates Avanzado";
-          const enlaceReal = "https://chat.whatsapp.com/Hzvdx52ssP86VQUJcPIIT7?s=cl&p=a&mlu=4&ilr=4";
-          
-          enviarEnlaceGrupo(remitente, nombreCurso, enlaceReal)
-            .then(() => console.log("[ENLACE ENVIADO CON ÉXITO]"))
-            .catch(error => console.error("-> ERROR AL ENVIAR ENLACE:", error.message));
+          const enlaceEncontrado = await obtenerEnlaceCurso(nombreCursoSolicitado);
+
+          if (enlaceEncontrado) {
+            await enviarEnlaceGrupo(remitente, nombreCursoSolicitado, enlaceEncontrado);
+            console.log("-> Enlace entregado al alumno con éxito.");
+          } else {
+            await enviarMensajeTexto(remitente, `Lo siento, todavía no tengo registrado un grupo para el curso de *${nombreCursoSolicitado}*. Por favor, consulta con Logroño Deporte o tu monitor.`);
+          }
+          return;
         }
 
-        if (texto.includes("grupo")) {
-          console.log("-> Creando grupo de curso...");
-          const resultadoGrupo = await crearGrupoCurso("Pilates Avanzado");
-          console.log("[GRUPO CREADO]:", resultadoGrupo);
+        if (/\b(horario|clase|turno)\b/.test(textoMinusculas)) {
+          await enviarPlantillaHorarios(remitente);
+          return;
         }
       } 
-      
-      else if (field === 'group_lifecycle_update' && value?.invite_link) {
-        const nombreCurso = value.subject.replace("Logroño Deporte - ", "");
-        const datos = colaInscripciones.get(nombreCurso);
-        if (datos) {
-          enviarEmailInvitacion(datos.emailAlumno, value.invite_link, nombreCurso);
-          colaInscripciones.delete(nombreCurso);
-        }
-      }
     }
   } catch (error) { 
     console.error("Error general en el webhook:", error); 
