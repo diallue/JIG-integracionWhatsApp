@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const { colaInscripciones } = require('../utils/queue');
-const { enviarPlantillaHorarios, crearGrupoCurso } = require('../services/whatsapp.service');
 const { enviarPlantillaHorarios, enviarEnlaceGrupo } = require('../services/whatsapp.service');
 const { enviarEmailInvitacion } = require('../services/email.service');
 
