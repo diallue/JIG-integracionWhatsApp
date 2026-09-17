@@ -73,7 +73,7 @@ router.post('/', async (req, res) => {
           return;
         }
 
-        if (/\b(horario|clase|turno)\b/.test(textoMinusculas)) {
+        if (/\b(horario|horarios|clases|clase|turno)\b/.test(textoMinusculas)) {
           await enviarPlantillaHorarios(remitente);
           return;
         }
