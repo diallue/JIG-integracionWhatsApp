@@ -7,7 +7,8 @@ async function enviarReservaAPI(telefono, datosReserva) {
     const response = await fetch(URL_API_RESERVAS, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true'
       },
       body: JSON.stringify({
         telefono: telefono,
