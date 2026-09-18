@@ -1,4 +1,4 @@
-const URL_API_RESERVAS = process.env.URL_API_RESERVAS || "https://tu-dominio.com/api_whatsapp/reservar";
+const URL_API_RESERVAS = process.env.URL_API_RESERVAS || "https://siding-rover-wanting.ngrok-free.dev/api_whatsapp/reservar";
 
 async function enviarReservaAPI(telefono, datosReserva) {
   console.log(`-> Conectando con la API independiente para ${telefono}...`);
