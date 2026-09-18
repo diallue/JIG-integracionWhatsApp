@@ -1,4 +1,4 @@
-const URL_API_RESERVAS = process.env.URL_API_RESERVAS || "https://siding-rover-wanting.ngrok-free.dev/api_whatsapp/reservar";
+const URL_API_RESERVAS = process.env.URL_API_RESERVAS || "https://pruebareservas.jig.es/reservas/api_whatsapp/reservar";
 
 async function enviarReservaAPI(telefono, datosReserva) {
   console.log(`-> Conectando con la API independiente para ${telefono}...`);
@@ -8,8 +8,7 @@ async function enviarReservaAPI(telefono, datosReserva) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true',
-        'User-Agent': 'WhatsAppBot/1.0' 
+        'User-Agent': 'WhatsAppBot/1.0'
       },
       body: JSON.stringify({
         telefono: telefono,
