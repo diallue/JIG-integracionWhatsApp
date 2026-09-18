@@ -1,7 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const { guardarEnlaceCurso, obtenerEnlaceCurso } = require('../services/db.service');
+
+const { 
+  guardarEnlaceCurso, 
+  obtenerEnlaceCurso,
+  setEstadoUsuario,
+  getEstadoUsuario,
+  clearEstadoUsuario,
+  guardarDatoTemporal,
+  getDatosTemporales
+} = require('../services/db.service');
+
 const { enviarMensajeTexto, enviarPlantillaHorarios, enviarEnlaceGrupo } = require('../services/whatsapp.service');
+const { enviarReservaAPI } = require('../services/reservas.service');
 
 const PIN_ADMIN = process.env.PIN_ADMIN || "LD2026"; 
 
@@ -33,10 +44,55 @@ router.post('/', async (req, res) => {
       
       if (field === 'messages' && value?.messages?.[0]?.type === 'text') {
         const remitente = value.messages[0].from;
+        const nombrePerfil = value.contacts?.[0]?.profile?.name || "Cliente";
         const textoOriginal = value.messages[0].text.body; 
         const textoMinusculas = textoOriginal.toLowerCase();
         
         console.log(`[MENSAJE RECIBIDO] De ${remitente}: "${textoOriginal}"`);
+
+        const estadoActual = await getEstadoUsuario(remitente);
+
+        if (estadoActual) {
+          if (estadoActual === 'ESPERANDO_FECHA') {
+            await guardarDatoTemporal(remitente, 'fecha', textoOriginal);
+            await setEstadoUsuario(remitente, 'ESPERANDO_HORA');
+            await enviarMensajeTexto(remitente, `📅 ¡Anotado! Fecha: ${textoOriginal}.\n\n¿A qué hora te gustaría venir? (Ej: 14:30 o 21:00)`);
+            return;
+          }
+          
+          if (estadoActual === 'ESPERANDO_HORA') {
+            await guardarDatoTemporal(remitente, 'hora', textoOriginal);
+            await setEstadoUsuario(remitente, 'ESPERANDO_PLAZAS');
+            await enviarMensajeTexto(remitente, `⏰ Perfecto, a las ${textoOriginal}.\n\n¿Cuántas personas vais a ser en total? (Dime un número, ej: 4)`);
+            return;
+          }
+
+          if (estadoActual === 'ESPERANDO_PLAZAS') {
+            await enviarMensajeTexto(remitente, "⏳ Comprobando disponibilidad y procesando tu reserva...");
+            
+            const datos = await getDatosTemporales(remitente);
+            datos.plazas = textoOriginal;
+            datos.nombre = nombrePerfil; 
+            
+            const localizador = await enviarReservaAPI(remitente, datos);
+            
+            if (localizador) {
+              await enviarMensajeTexto(remitente, `✅ ¡Reserva confirmada con éxito!\n\n🆔 Localizador: *${localizador}*\n📅 Fecha: ${datos.fecha}\n⏰ Hora: ${datos.hora}\n👥 Plazas: ${datos.plazas}\n\nTe esperamos.`);
+            } else {
+              await enviarMensajeTexto(remitente, "❌ Lo siento, no hay disponibilidad para esa fecha/hora o los datos son incorrectos. Por favor, inténtalo de nuevo más tarde.");
+            }
+            
+            // Limpiamos la memoria para que el usuario pueda usar otros comandos
+            await clearEstadoUsuario(remitente);
+            return;
+          }
+        }
+
+        if (/\b(reservar|reserva)\b/.test(textoMinusculas)) {
+          await setEstadoUsuario(remitente, 'ESPERANDO_FECHA');
+          await enviarMensajeTexto(remitente, "¡Hola! Estaré encantado de gestionar tu reserva paso a paso. 🍷\n\n📅 ¿Para qué fecha la necesitas? (Dime el día, ej: 25/10/2026)");
+          return;
+        }
 
         const regexAdmin = /^!nuevo\s+(\S+)\s+(.+?)\s+(https:\/\/chat\.whatsapp\.com\/\S+)$/i;
         const matchAdmin = textoOriginal.match(regexAdmin);
