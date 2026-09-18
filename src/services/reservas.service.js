@@ -8,7 +8,8 @@ async function enviarReservaAPI(telefono, datosReserva) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true'
+        'ngrok-skip-browser-warning': 'true',
+        'User-Agent': 'WhatsAppBot/1.0' 
       },
       body: JSON.stringify({
         telefono: telefono,
@@ -19,18 +20,26 @@ async function enviarReservaAPI(telefono, datosReserva) {
       })
     });
 
-    const data = await response.json();
+    const rawText = await response.text();
     
-    if (data.success) {
-        console.log(`-> ¡Éxito! Localizador generado: ${data.localizador}`);
-        return data.localizador;
-    } else {
-        console.error("-> API rechazó la reserva:", data.error);
+    try {
+        const data = JSON.parse(rawText);
+        
+        if (data.success) {
+            console.log(`-> ¡Éxito! Localizador generado: ${data.localizador}`);
+            return data.localizador;
+        } else {
+            console.error("-> ❌ API rechazó la reserva:", data.error);
+            return false;
+        }
+    } catch (parseError) {
+        console.error("-> ❌ El servidor no devolvió JSON. Devolvió este HTML/Texto:");
+        console.error(rawText.substring(0, 800) + "...");
         return false;
     }
     
   } catch (error) {
-    console.error("-> Error de red al contactar la API:", error.message);
+    console.error("-> ❌ Error de red al contactar la API:", error.message);
     return false;
   }
 }
