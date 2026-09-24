@@ -1,5 +1,6 @@
 const whatsappToken = process.env.WHATSAPP_TOKEN;
 const phoneNumberId = process.env.PHONE_NUMBER_ID;
+const suscripcionesCursos = new Map();
 
 async function enviarMensajeTexto(destinatario, texto) {
   const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`;
@@ -125,10 +126,27 @@ async function enviarBotonesHora(destinatario, fecha) {
   return response.json();
 }
 
+async function suscribirAlumno(nombreCurso, telefono) {
+   const clave = nombreCurso.toLowerCase().trim();
+   if (!suscripcionesCursos.has(clave)) {
+       suscripcionesCursos.set(clave, new Set());
+   }
+   suscripcionesCursos.get(clave).add(telefono);
+   console.log(`[DB] Alumno ${telefono} suscrito a avisos de: ${clave}`);
+}
+
+async function obtenerSuscriptores(nombreCurso) {
+   const clave = nombreCurso.toLowerCase().trim();
+   const suscriptores = suscripcionesCursos.get(clave);
+   return suscriptores ? Array.from(suscriptores) : [];
+}
+
 module.exports = {
   enviarMensajeTexto,
   enviarPlantillaHorarios,
   enviarEnlaceGrupo,
   enviarMenuPrincipal,
-  enviarBotonesHora 
+  enviarBotonesHora,
+  suscribirAlumno,
+  obtenerSuscriptores
 };

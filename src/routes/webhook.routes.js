@@ -12,7 +12,7 @@ const {
   validarAlumno
 } = require('../services/db.service');
 
-const { enviarMensajeTexto, enviarPlantillaHorarios, enviarEnlaceGrupo, enviarMenuPrincipal, enviarBotonesHora } = require('../services/whatsapp.service');
+const { enviarMensajeTexto, enviarPlantillaHorarios, enviarEnlaceGrupo, enviarMenuPrincipal, enviarBotonesHora, suscribirAlumno, obtenerSuscriptores } = require('../services/whatsapp.service');
 const { enviarReservaAPI } = require('../services/reservas.service');
 
 const PIN_ADMIN = process.env.PIN_ADMIN || "LD2026"; 
@@ -81,6 +81,8 @@ router.post('/', async (req, res) => {
                  const datos = await getDatosTemporales(remitente);
                  const enlace = await obtenerEnlaceCurso(datos.curso_solicitado);
                  
+                 await suscribirAlumno(datos.curso_solicitado, remitente); 
+                 
                  await enviarEnlaceGrupo(remitente, datos.curso_solicitado, enlace);
                  await clearEstadoUsuario(remitente);
              } else {
@@ -138,6 +140,35 @@ router.post('/', async (req, res) => {
             await enviarMensajeTexto(remitente, `Acceso denegado: PIN de seguridad incorrecto.`);
           }
           return; 
+        }
+
+        const regexAviso = /^!aviso\s+(\S+)\s+"([^"]+)"\s+(.+)$/i;
+        const matchAviso = textoOriginal.match(regexAviso);
+
+        if (matchAviso) {
+          const pinRecibido = matchAviso[1];
+          const nombreCurso = matchAviso[2];
+          const mensajeAviso = matchAviso[3];
+
+          if (pinRecibido === PIN_ADMIN) {
+            const suscriptores = await obtenerSuscriptores(nombreCurso);
+            
+            if (suscriptores.length > 0) {
+              await enviarMensajeTexto(remitente, `⏳ Enviando aviso a ${suscriptores.length} alumnos de *${nombreCurso}*...`);
+              
+              let enviados = 0;
+              for (const telefonoAlumno of suscriptores) {
+                 await enviarMensajeTexto(telefonoAlumno, `⚠️ *AVISO DE LOGROÑO DEPORTE*\n📍 Curso: ${nombreCurso}\n\n${mensajeAviso}`);
+                 enviados++;
+              }
+              await enviarMensajeTexto(remitente, `✅ ¡Aviso enviado con éxito a ${enviados} alumnos!`);
+            } else {
+              await enviarMensajeTexto(remitente, `❌ No hay ningún alumno validado en el curso de *${nombreCurso}*.`);
+            }
+          } else {
+            await enviarMensajeTexto(remitente, `Acceso denegado: PIN de seguridad incorrecto.`);
+          }
+          return;
         }
 
         const regexUsuario = /^quiero unirme al grupo de (.+)$/i;
