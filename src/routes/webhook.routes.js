@@ -12,7 +12,7 @@ const {
   validarAlumno
 } = require('../services/db.service');
 
-const { enviarMensajeTexto, enviarPlantillaHorarios, enviarEnlaceGrupo } = require('../services/whatsapp.service');
+const { enviarMensajeTexto, enviarPlantillaHorarios, enviarEnlaceGrupo, enviarMenuPrincipal } = require('../services/whatsapp.service');
 const { enviarReservaAPI } = require('../services/reservas.service');
 
 const PIN_ADMIN = process.env.PIN_ADMIN || "LD2026"; 
@@ -43,11 +43,24 @@ router.post('/', async (req, res) => {
         return;
       }
       
-      if (field === 'messages' && value?.messages?.[0]?.type === 'text') {
-        const remitente = value.messages[0].from;
+      if (field === 'messages' && value?.messages?.[0]) {
+        const mensajeEntrante = value.messages[0];
+        const remitente = mensajeEntrante.from;
         const nombrePerfil = value.contacts?.[0]?.profile?.name || "Cliente";
-        const textoOriginal = value.messages[0].text.body; 
-        const textoMinusculas = textoOriginal.toLowerCase();
+        
+        let textoOriginal = "";
+        let textoMinusculas = "";
+
+        if (mensajeEntrante.type === 'text') {
+            textoOriginal = mensajeEntrante.text.body; 
+            textoMinusculas = textoOriginal.toLowerCase();
+        } 
+        else if (mensajeEntrante.type === 'interactive') {
+            textoOriginal = mensajeEntrante.interactive.button_reply.id; 
+            textoMinusculas = textoOriginal.toLowerCase();
+        } else {
+            return;
+        }
         
         console.log(`[MENSAJE RECIBIDO] De ${remitente}: "${textoOriginal}"`);
 
@@ -56,7 +69,7 @@ router.post('/', async (req, res) => {
         if (estadoActual) {
           if (textoMinusculas === 'cancelar') {
              await clearEstadoUsuario(remitente);
-             await enviarMensajeTexto(remitente, "🚫 Reserva cancelada. ¿En qué más puedo ayudarte?");
+             await enviarMensajeTexto(remitente, "🚫 Operación cancelada. ¿En qué más puedo ayudarte?");
              return;
           }
 
@@ -110,12 +123,6 @@ router.post('/', async (req, res) => {
           }
         }
 
-        if (/\b(reservar|reserva)\b/.test(textoMinusculas)) {
-          await setEstadoUsuario(remitente, 'ESPERANDO_FECHA');
-          await enviarMensajeTexto(remitente, "¡Hola! Estaré encantado de gestionar tu reserva paso a paso. 🍷\n\n📅 ¿Para qué fecha la necesitas? (Dime el día, ej: 25/10/2026)");
-          return;
-        }
-
         const regexAdmin = /^!nuevo\s+(\S+)\s+(.+?)\s+(https:\/\/chat\.whatsapp\.com\/\S+)$/i;
         const matchAdmin = textoOriginal.match(regexAdmin);
 
@@ -150,10 +157,27 @@ router.post('/', async (req, res) => {
           return;
         }
 
-        if (/\b(horario|horarios|clases|clase|turno)\b/.test(textoMinusculas)) {
-          await enviarPlantillaHorarios(remitente);
-          return;
+        if (/\b(hola|menu|menú|empezar|ayuda)\b/.test(textoMinusculas)) {
+            await enviarMenuPrincipal(remitente);
+            return;
         }
+
+        if (textoMinusculas === 'cmd_horarios' || /\b(horario|horarios|clases|clase|turno)\b/.test(textoMinusculas)) {
+            await enviarPlantillaHorarios(remitente);
+            return;
+        }
+
+        if (textoMinusculas === 'cmd_reservar' || /\b(reservar|reserva)\b/.test(textoMinusculas)) {
+            await setEstadoUsuario(remitente, 'ESPERANDO_FECHA');
+            await enviarMensajeTexto(remitente, "¡Estaré encantado de gestionar tu reserva! 🍷\n\n📅 ¿Para qué fecha la necesitas? (Dime el día, ej: 25/10/2026)");
+            return;
+        }
+
+        if (textoMinusculas === 'cmd_ayuda_grupos') {
+            await enviarMensajeTexto(remitente, "Para unirte a un grupo, solo tienes que decirme:\n\n*Quiero unirme al grupo de [Nombre del Curso]*\n\nTe pediré tu DNI por seguridad y te daré el enlace.");
+            return;
+        }
+
       } 
     }
   } catch (error) { 
