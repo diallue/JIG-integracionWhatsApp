@@ -33,8 +33,7 @@ async function enviarPlantillaHorarios(destinatario) {
 }
 
 async function enviarEnlaceGrupo(destinatario, nombreCurso, enlaceGrupo) {
-  const texto = `¡Hola! Aquí tienes el acceso al grupo oficial de coordinación para *${nombreCurso}*:\n\n👉 ${enlaceGrupo}\n\nÚnete para estar al tanto de todas las 
-                 novedades de Logroño Deporte.`;
+  const texto = `¡Hola! Aquí tienes el acceso al grupo oficial de coordinación para *${nombreCurso}*:\n\n👉 ${enlaceGrupo}\n\nÚnete para estar al tanto de todas las novedades de Logroño Deporte.`;
   return enviarMensajeTexto(destinatario, texto);
 }
 
