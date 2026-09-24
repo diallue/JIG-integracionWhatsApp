@@ -150,7 +150,7 @@ router.post('/', async (req, res) => {
           if (enlaceEncontrado) {
             await guardarDatoTemporal(remitente, 'curso_solicitado', nombreCursoSolicitado);
             await setEstadoUsuario(remitente, 'ESPERANDO_DNI');
-            await enviarMensajeTexto(remitente, `Tengo el enlace para el grupo de *${nombreCursoSolicitado}*.\n\n🔒 Por seguridad, indícame primero tu *DNI* o tu *Número de Abonado* para verificar tu inscripción.`);
+            await enviarMensajeTexto(remitente, `Tengo el enlace para el grupo de *${nombreCursoSolicitado}*.\n\n🔒 Por seguridad, indícame primero tu *DNI* o tu *Número de Abonado* para verificar tu inscripción.\n\n_(💡 Escribe *cancelar* en cualquier momento para salir)_`);
           } else {
             await enviarMensajeTexto(remitente, `Lo siento, todavía no tengo registrado un grupo para el curso de *${nombreCursoSolicitado}*. Por favor, consulta con Logroño Deporte o tu monitor.`);
           }
@@ -169,7 +169,7 @@ router.post('/', async (req, res) => {
 
         if (textoMinusculas === 'cmd_reservar' || /\b(reservar|reserva)\b/.test(textoMinusculas)) {
             await setEstadoUsuario(remitente, 'ESPERANDO_FECHA');
-            await enviarMensajeTexto(remitente, "¡Estaré encantado de gestionar tu reserva! 🍷\n\n📅 ¿Para qué fecha la necesitas? (Dime el día, ej: 25/10/2026)");
+            await enviarMensajeTexto(remitente, "¡Estaré encantado de gestionar tu reserva! 🍷\n\n📅 ¿Para qué fecha la necesitas? (Dime el día, ej: 25/10/2026)\n\n_(💡 Escribe *cancelar* en cualquier momento para salir)_");
             return;
         }
 
@@ -177,6 +177,8 @@ router.post('/', async (req, res) => {
             await enviarMensajeTexto(remitente, "Para unirte a un grupo, solo tienes que decirme:\n\n*Quiero unirme al grupo de [Nombre del Curso]*\n\nTe pediré tu DNI por seguridad y te daré el enlace.");
             return;
         }
+
+        await enviarMenuPrincipal(remitente);
 
       } 
     }
