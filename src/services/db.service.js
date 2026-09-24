@@ -1,6 +1,7 @@
 const enlacesGuardados = new Map();
 const estadosUsuarios = new Map();
 const datosTemporales = new Map();
+const alumnosPermitidos = ['12345678A', '87654321B', '1111', '2222'];
 
 async function guardarEnlaceCurso(nombreCurso, enlace) {
   const clave = nombreCurso.toLowerCase().trim();
@@ -37,6 +38,10 @@ async function getDatosTemporales(telefono) {
   return datosTemporales.get(telefono) || {};
 }
 
+async function validarAlumno(identificador) {
+  return alumnosPermitidos.includes(identificador.toUpperCase().trim());
+}
+
 module.exports = {
   guardarEnlaceCurso,
   obtenerEnlaceCurso,
@@ -44,5 +49,6 @@ module.exports = {
   getEstadoUsuario,
   clearEstadoUsuario,
   guardarDatoTemporal,
-  getDatosTemporales
+  getDatosTemporales,
+  validarAlumno
 };

@@ -2,7 +2,7 @@ const whatsappToken = process.env.WHATSAPP_TOKEN;
 const phoneNumberId = process.env.PHONE_NUMBER_ID;
 
 async function enviarMensajeTexto(destinatario, texto) {
-  const url = `https://graph.facebook.com/v25.0/${phoneNumberId}/messages`;
+  const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`;
   const payload = {
     messaging_product: "whatsapp",
     recipient_type: "individual",
@@ -33,7 +33,8 @@ async function enviarPlantillaHorarios(destinatario) {
 }
 
 async function enviarEnlaceGrupo(destinatario, nombreCurso, enlaceGrupo) {
-  const texto = `¡Hola! Aquí tienes el acceso al grupo oficial de coordinación para *${nombreCurso}*:\n\n👉 ${enlaceGrupo}\n\nÚnete para estar al tanto de todas las novedades de Logroño Deporte.`;
+  const texto = `¡Hola! Aquí tienes el acceso al grupo oficial de coordinación para *${nombreCurso}*:\n\n👉 ${enlaceGrupo}\n\nÚnete para estar al tanto de todas las 
+                 novedades de Logroño Deporte.`;
   return enviarMensajeTexto(destinatario, texto);
 }
 

@@ -8,7 +8,8 @@ const {
   getEstadoUsuario,
   clearEstadoUsuario,
   guardarDatoTemporal,
-  getDatosTemporales
+  getDatosTemporales,
+  validarAlumno
 } = require('../services/db.service');
 
 const { enviarMensajeTexto, enviarPlantillaHorarios, enviarEnlaceGrupo } = require('../services/whatsapp.service');
@@ -53,6 +54,28 @@ router.post('/', async (req, res) => {
         const estadoActual = await getEstadoUsuario(remitente);
 
         if (estadoActual) {
+          if (textoMinusculas === 'cancelar') {
+             await clearEstadoUsuario(remitente);
+             await enviarMensajeTexto(remitente, "🚫 Reserva cancelada. ¿En qué más puedo ayudarte?");
+             return;
+          }
+
+          if (estadoActual === 'ESPERANDO_DNI') {
+             const identificador = textoOriginal.trim();
+             const esValido = await validarAlumno(identificador);
+
+             if (esValido) {
+                 const datos = await getDatosTemporales(remitente);
+                 const enlace = await obtenerEnlaceCurso(datos.curso_solicitado);
+                 
+                 await enviarEnlaceGrupo(remitente, datos.curso_solicitado, enlace);
+                 await clearEstadoUsuario(remitente);
+             } else {
+                 await enviarMensajeTexto(remitente, "❌ Lo siento, no encuentro ese DNI o número de abonado en la lista de inscritos. Revísalo y vuelve a escribirlo, o escribe *cancelar* para salir.");
+             }
+             return;
+          }
+
           if (estadoActual === 'ESPERANDO_FECHA') {
             await guardarDatoTemporal(remitente, 'fecha', textoOriginal);
             await setEstadoUsuario(remitente, 'ESPERANDO_HORA');
@@ -82,7 +105,6 @@ router.post('/', async (req, res) => {
               await enviarMensajeTexto(remitente, "❌ Lo siento, no hay disponibilidad para esa fecha/hora o los datos son incorrectos. Por favor, inténtalo de nuevo más tarde.");
             }
             
-            // Limpiamos la memoria para que el usuario pueda usar otros comandos
             await clearEstadoUsuario(remitente);
             return;
           }
@@ -116,13 +138,12 @@ router.post('/', async (req, res) => {
 
         if (matchUsuario) {
           const nombreCursoSolicitado = matchUsuario[1];
-          console.log(`-> Buscando enlace para: ${nombreCursoSolicitado}`);
-          
           const enlaceEncontrado = await obtenerEnlaceCurso(nombreCursoSolicitado);
 
           if (enlaceEncontrado) {
-            await enviarEnlaceGrupo(remitente, nombreCursoSolicitado, enlaceEncontrado);
-            console.log("-> Enlace entregado al alumno con éxito.");
+            await guardarDatoTemporal(remitente, 'curso_solicitado', nombreCursoSolicitado);
+            await setEstadoUsuario(remitente, 'ESPERANDO_DNI');
+            await enviarMensajeTexto(remitente, `Tengo el enlace para el grupo de *${nombreCursoSolicitado}*.\n\n🔒 Por seguridad, indícame primero tu *DNI* o tu *Número de Abonado* para verificar tu inscripción.`);
           } else {
             await enviarMensajeTexto(remitente, `Lo siento, todavía no tengo registrado un grupo para el curso de *${nombreCursoSolicitado}*. Por favor, consulta con Logroño Deporte o tu monitor.`);
           }

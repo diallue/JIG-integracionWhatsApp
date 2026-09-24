@@ -30,7 +30,7 @@ router.post('/inscribir-alumno', async (req, res) => {
 
 router.get('/forzar-pin', async (req, res) => {
   try {
-    const phoneNumberId = '1366063996580453';
+    const phoneNumberId = process.env.PHONE_NUMBER_ID;
     const accessToken = process.env.WHATSAPP_TOKEN;
     const pin = '751309';
 
