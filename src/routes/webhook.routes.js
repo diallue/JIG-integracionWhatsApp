@@ -39,7 +39,9 @@ router.post('/', async (req, res) => {
 
       if (value?.statuses) {
         const estado = value.statuses[0];
-        if (estado.errors) console.error("-> FALLO ENTREGA:", JSON.stringify(estado.errors));
+        if (estado.errors) {
+          console.error("-> FALLO ENTREGA:", JSON.stringify(estado.errors));
+        }
         return;
       }
       
@@ -57,7 +59,9 @@ router.post('/', async (req, res) => {
         } 
         else if (mensajeEntrante.type === 'interactive') {
             textoOriginal = mensajeEntrante.interactive.button_reply?.id || mensajeEntrante.interactive.list_reply?.id; 
-            if (!textoOriginal) return;
+            if (!textoOriginal) {
+              return;
+            }
             textoMinusculas = textoOriginal.toLowerCase();
         } else {
             return;
