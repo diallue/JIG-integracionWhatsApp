@@ -142,7 +142,7 @@ router.post('/', async (req, res) => {
           return; 
         }
 
-        const regexAviso = /^!aviso\s+(\S+)\s+"([^"]+)"\s+(.+)$/i;
+        const regexAviso = /^!aviso\s+(\S+)\s+["“”](.+?)["“”]\s+(.+)$/i;
         const matchAviso = textoOriginal.match(regexAviso);
 
         if (matchAviso) {
