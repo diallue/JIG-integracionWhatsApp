@@ -39,7 +39,7 @@ async function enviarEnlaceGrupo(destinatario, nombreCurso, enlaceGrupo) {
 }
 
 async function enviarMenuPrincipal(destinatario) {
-  const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`;
+  const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
   
   const payload = {
     messaging_product: "whatsapp",
@@ -47,23 +47,33 @@ async function enviarMenuPrincipal(destinatario) {
     to: destinatario,
     type: "interactive",
     interactive: {
-      type: "button",
+      type: "list",
+      header: {
+        type: "text",
+        text: "Logroño Deporte 🏃‍♂️"
+      },
       body: {
-        text: "¡Hola! Soy el asistente virtual de Logroño Deporte 🏃‍♂️\n\n¿En qué te puedo ayudar hoy?"
+        text: "¡Hola! Soy tu asistente virtual.\n\nDespliega el menú de abajo y selecciona la opción en la que te puedo ayudar hoy:"
+      },
+      footer: {
+        text: "Atención automatizada 24/7"
       },
       action: {
-        buttons: [
+        button: "Ver opciones 📋",
+        sections: [
           {
-            type: "reply",
-            reply: { id: "cmd_horarios", title: "📅 Horarios" }
+            title: "Gestiones Rápidas",
+            rows: [
+              { id: "cmd_reservar", title: "🍷 Reservar espacio", description: "Inicia una nueva reserva paso a paso" },
+              { id: "cmd_horarios", title: "📅 Ver Horarios", description: "Consulta los horarios de los cursos" }
+            ]
           },
           {
-            type: "reply",
-            reply: { id: "cmd_reservar", title: "🍷 Reservar" }
-          },
-          {
-            type: "reply",
-            reply: { id: "cmd_ayuda_grupos", title: "📱 Grupos WhatsApp" }
+            title: "Alumnos e Información",
+            rows: [
+              { id: "cmd_ayuda_grupos", title: "📱 Grupos WhatsApp", description: "Únete al chat de tu curso" },
+              { id: "cmd_faqs", title: "❓ Preguntas Frecuentes", description: "Tarifas, normas y dudas comunes" }
+            ]
           }
         ]
       }

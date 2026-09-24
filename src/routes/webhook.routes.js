@@ -56,7 +56,8 @@ router.post('/', async (req, res) => {
             textoMinusculas = textoOriginal.toLowerCase();
         } 
         else if (mensajeEntrante.type === 'interactive') {
-            textoOriginal = mensajeEntrante.interactive.button_reply.id; 
+            textoOriginal = mensajeEntrante.interactive.button_reply?.id || mensajeEntrante.interactive.list_reply?.id; 
+            if (!textoOriginal) return;
             textoMinusculas = textoOriginal.toLowerCase();
         } else {
             return;
@@ -206,6 +207,11 @@ router.post('/', async (req, res) => {
 
         if (textoMinusculas === 'cmd_ayuda_grupos') {
             await enviarMensajeTexto(remitente, "Para unirte a un grupo, solo tienes que decirme:\n\n*Quiero unirme al grupo de [Nombre del Curso]*\n\nTe pediré tu DNI por seguridad y te daré el enlace.");
+            return;
+        }
+
+        if (textoMinusculas === 'cmd_faqs') {
+            await enviarMensajeTexto(remitente, "📚 *PREGUNTAS FRECUENTES*\n\n1️⃣ *¿Cómo me abono?*\nPuedes abonarte online en nuestra web o presencialmente en Las Gaunas.\n\n2️⃣ *¿Qué incluye la tarifa?*\nAcceso libre a piscinas, pistas de atletismo y descuentos en reservas.\n\n3️⃣ *¿Puedo cancelar una reserva?*\nSí, hasta 24 horas antes desde tu área de usuario en la web.\n\n📍 Para más detalles, visita: _https://www.logronodeporte.es_");
             return;
         }
 
