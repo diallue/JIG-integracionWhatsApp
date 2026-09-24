@@ -81,9 +81,54 @@ async function enviarMenuPrincipal(destinatario) {
   return response.json();
 }
 
+async function enviarBotonesHora(destinatario, fecha) {
+  const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`;
+  
+  const payload = {
+    messaging_product: "whatsapp",
+    recipient_type: "individual",
+    to: destinatario,
+    type: "interactive",
+    interactive: {
+      type: "button",
+      body: {
+        text: `📅 ¡Anotado! Fecha: *${fecha}*.\n\n¿En qué turno te gustaría reservar?\n\n_(💡 Selecciona una opción o escribe cancelar)_`
+      },
+      action: {
+        buttons: [
+          {
+            type: "reply",
+            reply: { id: "10:00", title: "🌅 Mañana (10:00)" }
+          },
+          {
+            type: "reply",
+            reply: { id: "15:00", title: "☀️ Tarde (15:00)" }
+          },
+          {
+            type: "reply",
+            reply: { id: "19:00", title: "🌙 Noche (19:00)" }
+          }
+        ]
+      }
+    }
+  };
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${whatsappToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  return response.json();
+}
+
 module.exports = {
   enviarMensajeTexto,
   enviarPlantillaHorarios,
   enviarEnlaceGrupo,
-  enviarMenuPrincipal
+  enviarMenuPrincipal,
+  enviarBotonesHora 
 };

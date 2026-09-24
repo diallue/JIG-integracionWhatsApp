@@ -12,7 +12,7 @@ const {
   validarAlumno
 } = require('../services/db.service');
 
-const { enviarMensajeTexto, enviarPlantillaHorarios, enviarEnlaceGrupo, enviarMenuPrincipal } = require('../services/whatsapp.service');
+const { enviarMensajeTexto, enviarPlantillaHorarios, enviarEnlaceGrupo, enviarMenuPrincipal, enviarBotonesHora } = require('../services/whatsapp.service');
 const { enviarReservaAPI } = require('../services/reservas.service');
 
 const PIN_ADMIN = process.env.PIN_ADMIN || "LD2026"; 
@@ -92,14 +92,14 @@ router.post('/', async (req, res) => {
           if (estadoActual === 'ESPERANDO_FECHA') {
             await guardarDatoTemporal(remitente, 'fecha', textoOriginal);
             await setEstadoUsuario(remitente, 'ESPERANDO_HORA');
-            await enviarMensajeTexto(remitente, `📅 ¡Anotado! Fecha: ${textoOriginal}.\n\n¿A qué hora te gustaría venir? (Ej: 14:30 o 21:00)`);
+            await enviarBotonesHora(remitente, textoOriginal);
             return;
           }
           
           if (estadoActual === 'ESPERANDO_HORA') {
             await guardarDatoTemporal(remitente, 'hora', textoOriginal);
             await setEstadoUsuario(remitente, 'ESPERANDO_PLAZAS');
-            await enviarMensajeTexto(remitente, `⏰ Perfecto, a las ${textoOriginal}.\n\n¿Cuántas personas vais a ser en total? (Dime un número, ej: 4)`);
+            await enviarMensajeTexto(remitente, `⏰ Perfecto, a las ${textoOriginal}.\n\n¿Cuántas personas vais a ser en total? (Dime un número, ej: 4)\n\n_(💡 Escribe *cancelar* en cualquier momento para salir)_`);
             return;
           }
 
