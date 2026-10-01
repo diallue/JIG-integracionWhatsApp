@@ -198,7 +198,7 @@ router.post('/', async (req, res) => {
             return;
         }
 
-        if (textoMinusculas === 'cmd_horarios' || /\b(horario|horarios|clases|clase|turno)\b/.test(textoMinusculas)) {
+        if (textoMinusculas === 'cmd_horarios' || /\b(horario|horarios|clases|clase|turno|hoy|mañana|semana)\b/.test(textoMinusculas)) {
             await enviarPlantillaHorarios(remitente);
             return;
         }
