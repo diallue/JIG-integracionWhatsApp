@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { obtenerEnlaceCurso } = require('../services/db.service');
 const { enviarEmailInvitacion } = require('../services/email.service');
+const { guardarEnlaceCurso } = require('../services/db.service');
+const { crearGrupo } = require('../services/whatsapp.service');
 
 router.post('/inscribir-alumno', async (req, res) => {
   try {
@@ -53,6 +55,35 @@ router.get('/forzar-pin', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/crear-grupo', async (req, res) => {
+  try {
+    const { nombreCurso } = req.body;
+    
+    if (!nombreCurso) {
+      return res.status(400).json({ error: "Falta el nombreCurso" });
+    }
+
+    console.log(`-> Solicitando a Meta la creación del grupo: LD - ${nombreCurso}`);
+    
+    const metaResponse = await crearGrupo(`LD - ${nombreCurso}`);
+
+    if (metaResponse && metaResponse.invite_link) {
+      await guardarEnlaceCurso(nombreCurso, metaResponse.invite_link);
+      
+      res.json({ 
+        status: "Grupo creado con éxito y enlazado al curso.", 
+        id_grupo: metaResponse.id,
+        enlace: metaResponse.invite_link 
+      });
+    } else {
+      res.status(500).json({ error: "Meta rechazó la creación (revisa si el número tiene los permisos OBA)." });
+    }
+  } catch (error) {
+    console.error("Error interno al crear grupo:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
   }
 });
 

@@ -151,6 +151,33 @@ async function obtenerSuscriptores(nombreCurso) {
    return suscriptores ? Array.from(suscriptores) : [];
 }
 
+async function crearGrupo(nombreCurso, descripcion = "Grupo oficial de coordinación") {
+  const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/groups`;
+  
+  const payload = {
+    name: nombreCurso,
+    description: descripcion
+  };
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${whatsappToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error("-> Error de Meta al crear grupo:", JSON.stringify(errorData));
+    return null;
+  }
+
+  const data = await response.json();
+  return data;
+}
+
 module.exports = {
   enviarMensajeTexto,
   enviarPlantillaHorarios,
@@ -158,5 +185,6 @@ module.exports = {
   enviarMenuPrincipal,
   enviarBotonesHora,
   suscribirAlumno,
-  obtenerSuscriptores
+  obtenerSuscriptores,
+  crearGrupo
 };
