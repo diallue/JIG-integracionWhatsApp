@@ -151,12 +151,12 @@ async function obtenerSuscriptores(nombreCurso) {
    return suscriptores ? Array.from(suscriptores) : [];
 }
 
-async function crearGrupo(nombreCurso, descripcion = "Grupo oficial de coordinación") {
+async function crearGrupo(nombreCurso) {
   const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/groups`;
   
   const payload = {
-    name: nombreCurso,
-    description: descripcion
+    messaging_product: "whatsapp",
+    subject: nombreCurso
   };
 
   const response = await fetch(url, {
