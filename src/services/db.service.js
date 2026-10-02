@@ -3,16 +3,30 @@ const estadosUsuarios = new Map();
 const datosTemporales = new Map();
 const alumnosPermitidos = ['12345678A', '87654321B', '1111', '2222'];
 
+function normalizarCurso(nombreCurso) {
+  return String(nombreCurso || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/[^a-z0-9\s-]/g, '');
+}
+
 async function guardarEnlaceCurso(nombreCurso, enlace) {
-  const clave = nombreCurso.toLowerCase().trim();
-  enlacesGuardados.set(clave, enlace);
+  const clave = normalizarCurso(nombreCurso);
+  const enlaceValido = typeof enlace === 'string' ? enlace.trim() : '';
+
+  if (!clave || !enlaceValido) {
+    return false;
+  }
+
+  enlacesGuardados.set(clave, enlaceValido);
   console.log(`[DB] Enlace guardado para: ${clave}`);
   return true;
 }
 
 async function obtenerEnlaceCurso(nombreCurso) {
-  const clave = nombreCurso.toLowerCase().trim();
-  return enlacesGuardados.get(clave);
+  const clave = normalizarCurso(nombreCurso);
+  return enlacesGuardados.get(clave) || null;
 }
 
 async function setEstadoUsuario(telefono, estado) {
@@ -39,7 +53,8 @@ async function getDatosTemporales(telefono) {
 }
 
 async function validarAlumno(identificador) {
-  return alumnosPermitidos.includes(identificador.toUpperCase().trim());
+  const valor = String(identificador || '').trim().toUpperCase();
+  return alumnosPermitidos.includes(valor);
 }
 
 module.exports = {
