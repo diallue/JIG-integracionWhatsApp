@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     intl \
     pdo_mysql \
     zip
-# Habilitar el módulo de reescritura para las URLs amigables
+    
 RUN a2enmod rewrite
 
 COPY . /var/www/html/
