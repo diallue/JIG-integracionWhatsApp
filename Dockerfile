@@ -14,7 +14,7 @@ RUN a2enmod rewrite
 
 COPY . /var/www/html/
 
-ENV APACHE_DOCUMENT_ROOT /var/www/html/app/webroot
+ENV APACHE_DOCUMENT_ROOT /var/www/html/src/app/webroot
 RUN sed -ri -s 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -s 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 
