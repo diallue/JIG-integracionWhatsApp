@@ -1,9 +1,9 @@
 <?php
 
 if (isset($_GET['hub_challenge']) && isset($_GET['hub_verify_token'])) {
-    if ($_GET['hub_verify_token'] === getenv('WHATSAPP_VERIFY_TOKEN')) {
+    if ($_GET['hub_verify_token'] === '9e1fc0984964c266b23b5bb42ae99f7c') {
         http_response_code(200);
-        while (ob_get_level()) ob_end_clean(); // Borra cualquier advertencia previa
+        while (ob_get_level()) ob_end_clean();
         echo trim($_GET['hub_challenge']);
         exit;
     }
