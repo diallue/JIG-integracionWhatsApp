@@ -1,5 +1,17 @@
 <?php
 
+if (isset($_GET['hub_challenge']) && isset($_GET['hub_verify_token'])) {
+    if ($_GET['hub_verify_token'] === getenv('WHATSAPP_VERIFY_TOKEN')) {
+        http_response_code(200);
+        while (ob_get_level()) ob_end_clean(); // Borra cualquier advertencia previa
+        echo trim($_GET['hub_challenge']);
+        exit;
+    }
+}
+
+error_reporting(0);
+ini_set('display_errors', 0);
+
 define('APP_DIR', 'app');
 define('DS', DIRECTORY_SEPARATOR);
 define('ROOT', dirname(dirname(__DIR__)));
