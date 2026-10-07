@@ -2,8 +2,14 @@
 App:uses('Component', 'Controller');
 
 class WhatsAppComponent extends Component {
-    private $token = '9e1fc0984964c266b23b5bb42ae99f7c';
-    private $phoneId = '1425507657301849';
+    private $token;
+    private $phoneId;
+
+    public function __construct(ComponentCollection $collection, $settings = array()) {
+        parent::__construct($collection, $settings);
+        $this->token = getenv('WHATSAPP_TOKEN');
+        $this->phoneId = getenv('WHATSAPP_PHONE_ID');
+    }
 
     public function enviarMensajeTexto($destinatario, $mensaje) {
         $url = "https://graph.facebook.com/v21.0/{$this->phoneId}/messages";
@@ -15,7 +21,7 @@ class WhatsAppComponent extends Component {
             "text" => array("preview_url" => true, "body" => $mensaje)
         ];
 
-        return this->hacerPeticion($url, $payload);
+        return $this->hacerPeticion($url, $payload);
     }
 
     public function enviarPlantillaHorarios($destinatario) {

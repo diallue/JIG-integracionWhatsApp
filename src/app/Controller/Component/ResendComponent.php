@@ -3,9 +3,9 @@ App::uses('Component', 'Controller');
 
 class ResendComponent extends Component {
     public function __construct(ComponentCollection $collection, $settings = array()) {
-    parent::__construct($collection, $settings);
-    $this->apiKey = getenv('RESEND_API_KEY'); 
-}
+        parent::__construct($collection, $settings);
+        $this->apiKey = getenv('RESEND_API_KEY');
+    }
 
     public function enviarCorreo($emailAlumno, $enlaceGrupo, $nombreCurso) {
         $url = "https://api.resend.com/v1/emails";
@@ -28,7 +28,7 @@ class ResendComponent extends Component {
             "Content-Type: application/json"
         ));
         $response = curl_exec($ch);
-        
+
         return json_decode($response, true);
     }
 }

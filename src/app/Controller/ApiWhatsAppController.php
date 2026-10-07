@@ -69,10 +69,10 @@ class ApiWhatsappController extends AppController {
 
     public function webhook() {
         $this->autoRender = false;
-        $pinAdmin = "LD2026";
+        $pinAdmin = getenv('PIN_ADMIN');
 
         if ($this->request->is('get')) {
-            $verify_token = "9e1fc0984964c266b23b5bb42ae99f7c"; 
+            $verify_token = getenv('WHATSAPP_VERIFY_TOKEN');
             if ($this->request->query('hub_mode') === 'subscribe' && $this->request->query('hub_verify_token') === $verify_token) {
                 $this->response->statusCode(200);
                 echo $this->request->query('hub_challenge');
@@ -213,7 +213,7 @@ class ApiWhatsappController extends AppController {
                         if ($enlaceEncontrado) {
                             $this->WhatsappEstado->guardarDatoTemporal($remitente, 'curso_solicitado', $nombreCursoSolicitado);
                             $this->WhatsappEstado->setEstadoUsuario($remitente, 'ESPERANDO_DNI');
-                            $this->Whatsapp->enviarMensajeTexto($remitente, "Tengo el enlace para el grupo de *{$nombreCursoSolicitado}*.\n\n🔒 Por seguridad, indícame primero tu *DNI* o tu *Número de Abonado* para verificar tu inscripción.\n\n_(❌ Escribe *cancelar* en cualquier momento para salir)_");
+                            $this->Whatsapp->enviarMensajeTexto($remitente, "Tengo el enlace para el grupo de *{$nombreCursoSolicitado}*.\n\n🔒 Por seguridad, indícame primero tu *fecha de nacimiento* y tu *Número de Abonado* para verificar tu inscripción.\n\n_(❌ Escribe *cancelar* en cualquier momento para salir)_");
                         } else {
                             $this->Whatsapp->enviarMensajeTexto($remitente, "Lo siento, todavía no tengo registrado un grupo para el curso de *{$nombreCursoSolicitado}*. Por favor, consulta con Logroño Deporte o tu monitor.");
                         }
