@@ -1,7 +1,7 @@
 <?php
 App::uses('AppController', 'Controller');
 
-class ApiWhatsappController extends AppController {
+class ApiWhatsAppController extends AppController {
 
     public $uses = array(
         'Reserva', 'Localizador', 'ReservaHorarios', 'Servicio', 'Sala',
