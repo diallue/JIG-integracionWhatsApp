@@ -76,6 +76,7 @@ class ApiWhatsAppController extends AppController {
             if ($this->request->query('hub_mode') === 'subscribe' && $this->request->query('hub_verify_token') === $verify_token) {
                 $this->response->statusCode(200);
                 echo $this->request->query('hub_challenge');
+                exit;
             } else {
                 $this->response->statusCode(403);
             }
